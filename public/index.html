@@ -1,1 +1,235 @@
-Oh
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WA PANEL PRO</title>
+<script src="/socket.io/socket.io.js"></script>
+
+<style>
+body{
+background:#0f172a;
+font-family:Arial;
+margin:0;
+color:white;
+}
+
+.top{
+padding:20px;
+background:#111827;
+font-size:22px;
+font-weight:bold;
+}
+
+.wrap{
+padding:20px;
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+}
+
+.card{
+background:#1e293b;
+padding:20px;
+border-radius:14px;
+}
+
+input,textarea{
+width:100%;
+padding:12px;
+border:none;
+border-radius:10px;
+margin-bottom:10px;
+}
+
+button{
+padding:12px;
+border:none;
+border-radius:10px;
+cursor:pointer;
+margin:4px;
+}
+
+.console{
+background:black;
+height:400px;
+overflow:auto;
+padding:10px;
+border-radius:10px;
+font-size:13px;
+}
+
+.green{
+background:#22c55e;
+color:white;
+}
+
+.red{
+background:#ef4444;
+color:white;
+}
+
+.blue{
+background:#3b82f6;
+color:white;
+}
+</style>
+</head>
+
+<body>
+
+<div class="top">
+WA PANEL PRO
+</div>
+
+<div class="wrap">
+
+<div class="card">
+
+<h3>Create Session</h3>
+
+<input id="session" placeholder="session id">
+<button class="green" onclick="createSession()">Create</button>
+
+<h3>Pairing</h3>
+
+<input id="number" placeholder="628xxxx">
+<button class="blue" onclick="pair()">Generate Pairing</button>
+
+<h2 id="paircode"></h2>
+
+<h3>Send Message</h3>
+
+<input id="to" placeholder="628xxxx">
+<textarea id="msg" placeholder="message"></textarea>
+
+<button class="green" onclick="send()">Send</button>
+<button class="blue" onclick="restart()">Restart</button>
+<button class="red" onclick="stop()">Stop</button>
+
+</div>
+
+<div class="card">
+<h3>Realtime Console</h3>
+<div class="console" id="console"></div>
+</div>
+
+</div>
+
+<script>
+
+const socket = io()
+
+socket.on("log",(data)=>{
+
+ const div = document.getElementById("console")
+
+ div.innerHTML += "<div>["+data.sessionId+"] "+data.text+"</div>"
+
+ div.scrollTop = div.scrollHeight
+})
+
+async function createSession(){
+
+ const sessionId =
+ document.getElementById("session").value
+
+ const req = await fetch("/create-session",{
+   method:"POST",
+   headers:{
+     "Content-Type":"application/json"
+   },
+   body:JSON.stringify({ sessionId })
+ })
+
+ alert("session created")
+}
+
+async function pair(){
+
+ const sessionId =
+ document.getElementById("session").value
+
+ const number =
+ document.getElementById("number").value
+
+ const req = await fetch("/pair",{
+   method:"POST",
+   headers:{
+     "Content-Type":"application/json"
+   },
+   body:JSON.stringify({
+     sessionId,
+     number
+   })
+ })
+
+ const res = await req.json()
+
+ document.getElementById("paircode").innerHTML =
+ res.code || res.message
+}
+
+async function send(){
+
+ const sessionId =
+ document.getElementById("session").value
+
+ const number =
+ document.getElementById("to").value
+
+ const message =
+ document.getElementById("msg").value
+
+ await fetch("/send",{
+   method:"POST",
+   headers:{
+     "Content-Type":"application/json"
+   },
+   body:JSON.stringify({
+     sessionId,
+     number,
+     message
+   })
+ })
+
+ alert("message sent")
+}
+
+async function restart(){
+
+ const sessionId =
+ document.getElementById("session").value
+
+ await fetch("/restart",{
+   method:"POST",
+   headers:{
+     "Content-Type":"application/json"
+   },
+   body:JSON.stringify({ sessionId })
+ })
+
+ alert("restarted")
+}
+
+async function stop(){
+
+ const sessionId =
+ document.getElementById("session").value
+
+ await fetch("/stop",{
+   method:"POST",
+   headers:{
+     "Content-Type":"application/json"
+   },
+   body:JSON.stringify({ sessionId })
+ })
+
+ alert("stopped")
+}
+
+</script>
+
+</body>
+</html>
